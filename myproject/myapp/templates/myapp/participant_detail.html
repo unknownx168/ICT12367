@@ -1,0 +1,399 @@
+{% extends 'myapp/base.html' %}
+{% load static %}
+
+{% block title %}{{ participant.full_name }} - ระบบลงทะเบียนสัมมนา{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="breadcrumb-item"><a href="{% url 'participant_list' %}">รายชื่อผู้เข้าร่วม</a></li>
+<li class="breadcrumb-item active" aria-current="page">{{ participant.full_name }}</li>
+{% endblock %}
+
+{% block page_title %}ข้อมูลผู้เข้าร่วมสัมมนา{% endblock %}
+{% block page_subtitle %}รายละเอียดของผู้เข้าร่วมสัมมนา{% endblock %}
+
+{% block og_title %}{{ participant.full_name }} - ผู้เข้าร่วมสัมมนา{% endblock %}
+{% block og_description %}ข้อมูลผู้เข้าร่วมสัมมนา {{ participant.seminar.name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-user me-2"></i> ข้อมูลส่วนตัว
+                </h6>
+                <div class="btn-group">
+                    <a href="{% url 'participant_update' participant.id %}" class="btn btn-sm btn-warning me-2">
+                        <i class="fas fa-edit me-1"></i> แก้ไข
+                    </a>
+                    <a href="{% url 'participant_delete' participant.id %}" class="btn btn-sm btn-danger">
+                        <i class="fas fa-trash me-1"></i> ลบ
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="mb-1"><strong>ชื่อ-นามสกุล:</strong></p>
+                        <p class="lead mb-4">{{ participant.full_name }}</p>
+                        
+                        <p class="mb-1"><strong>อีเมล:</strong></p>
+                        <p class="lead mb-4">
+                            <a href="mailto:{{ participant.email }}" class="text-decoration-none">
+                                <i class="fas fa-envelope me-1"></i> {{ participant.email }}
+                            </a>
+                        </p>
+                        
+                        <p class="mb-1"><strong>เบอร์โทรศัพท์:</strong></p>
+                        <p class="lead mb-4">
+                            <a href="tel:{{ participant.phone }}" class="text-decoration-none">
+                                <i class="fas fa-phone me-1"></i> {{ participant.phone }}
+                            </a>
+                        </p>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <p class="mb-1"><strong>หน่วยงาน/องค์กร:</strong></p>
+                        <p class="lead mb-4">{{ participant.organization|default:"ไม่ระบุ" }}</p>
+                        
+                        <p class="mb-1"><strong>ตำแหน่ง:</strong></p>
+                        <p class="lead mb-4">{{ participant.position|default:"ไม่ระบุ" }}</p>
+                        
+                        <p class="mb-1"><strong>วันที่ลงทะเบียน:</strong></p>
+                        <p class="lead mb-4">{{ participant.registered_at|date:"d F Y H:i" }}</p>
+                    </div>
+                </div>
+                
+                {% if participant.special_requests %}
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <p class="mb-2"><strong>คำขอพิเศษ:</strong></p>
+                        <div class="alert alert-info">
+                            {{ participant.special_requests }}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <!-- Seminar Information -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-calendar-alt me-2"></i> ข้อมูลสัมมนา
+                </h6>
+            </div>
+            <div class="card-body">
+                <h5 class="font-weight-bold mb-4">{{ participant.seminar.name }}</h5>
+                
+                <p class="mb-1"><strong>วันที่เริ่ม:</strong></p>
+                <p class="mb-4">
+                    <i class="fas fa-calendar me-1"></i> {{ participant.seminar.start_date|date:"d M Y" }}
+                    <i class="fas fa-clock ms-3 me-1"></i> {{ participant.seminar.start_date|date:"H:i" }}
+                </p>
+                
+                <p class="mb-1"><strong>วันที่สิ้นสุด:</strong></p>
+                <p class="mb-4">
+                    <i class="fas fa-calendar me-1"></i> {{ participant.seminar.end_date|date:"d M Y" }}
+                    <i class="fas fa-clock ms-3 me-1"></i> {{ participant.seminar.end_date|date:"H:i" }}
+                </p>
+                
+                <p class="mb-1"><strong>สถานที่:</strong></p>
+                <p class="mb-4">
+                    <i class="fas fa-map-marker-alt me-1"></i> 
+                    {{ participant.seminar.location }}
+                </p>
+                
+                <p class="mb-1"><strong>จำนวนผู้เข้าร่วม:</strong></p>
+                <p class="mb-4">
+                    <i class="fas fa-users me-1"></i>
+                    {{ participant.seminar.get_participant_count }} / {{ participant.seminar.max_participants }}
+                </p>
+                
+                <div class="d-grid mt-4">
+                    <a href="{% url 'seminar_detail' participant.seminar.id %}" class="btn btn-primary">
+                        <i class="fas fa-info-circle me-1"></i> ดูรายละเอียดสัมมนา
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Attendance Status -->
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-check-circle me-2"></i> สถานะการเข้าร่วม
+                </h6>
+            </div>
+            <div class="card-body text-center">
+                {% if participant.attendance_confirmed %}
+                    <div class="alert alert-success mb-4">
+                        <i class="fas fa-check-circle me-2"></i> ยืนยันการเข้าร่วมแล้ว
+                    </div>
+                {% else %}
+                    <div class="alert alert-warning mb-4">
+                        <i class="fas fa-clock me-2"></i> รอการยืนยัน
+                    </div>
+                {% endif %}
+                
+                <form method="post" action="{% url 'update_attendance_status' participant.id %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="attendance_status" value="{% if participant.attendance_confirmed %}false{% else %}true{% endif %}">
+                    {% if participant.attendance_confirmed %}
+                        <button type="submit" class="btn btn-outline-danger w-100 py-2">
+                            <i class="fas fa-times-circle me-1"></i> ยกเลิกการยืนยัน
+                        </button>
+                    {% else %}
+                        <button type="submit" class="btn btn-success w-100 py-2">
+                            <i class="fas fa-check-circle me-1"></i> ยืนยันการเข้าร่วม
+                        </button>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-id-card me-2"></i> บัตรผู้เข้าร่วม
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row justify-content-center">
+                    <div class="col-md-8">
+                        <div class="card mb-4 participant-card" style="border: 2px dashed #ccc;">
+                            <div class="card-body p-4">
+                                <div class="row">
+                                    <div class="col-md-3 text-center mb-4 mb-md-0">
+                                        <div class="participant-avatar">
+                                            {{ participant.first_name|first }}{{ participant.last_name|first }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-9">
+                                        <h3 class="mb-2">{{ participant.full_name }}</h3>
+                                        <p class="text-muted mb-4">{{ participant.organization|default:"" }}{% if participant.position and participant.organization %} - {% endif %}{{ participant.position|default:"" }}</p>
+                                        
+                                        <h5 class="mb-4 text-primary">{{ participant.seminar.name }}</h5>
+                                        
+                                        <div class="row mb-3">
+                                            <div class="col-md-6 mb-3">
+                                                <small class="text-muted d-block mb-1">วันที่เริ่ม</small>
+                                                <div class="mb-1">
+                                                    <i class="fas fa-calendar-day me-1"></i> {{ participant.seminar.start_date|date:"d M Y" }}
+                                                </div>
+                                                <div>
+                                                    <i class="fas fa-clock me-1"></i> {{ participant.seminar.start_date|date:"H:i" }}
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <small class="text-muted d-block mb-1">วันที่สิ้นสุด</small>
+                                                <div class="mb-1">
+                                                    <i class="fas fa-calendar-day me-1"></i> {{ participant.seminar.end_date|date:"d M Y" }}
+                                                </div>
+                                                <div>
+                                                    <i class="fas fa-clock me-1"></i> {{ participant.seminar.end_date|date:"H:i" }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div>
+                                            <small class="text-muted d-block mb-1">สถานที่</small>
+                                            <span>{{ participant.seminar.location }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-center mt-4">
+                            <div class="text-center mt-4">
+                                <div class="d-flex flex-wrap justify-content-center gap-2">
+                                    <button type="button" class="btn btn-outline-primary py-1 px-3" onclick="window.print()">
+                                        <i class="fas fa-print me-1"></i> พิมพ์บัตร
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary social-share-btn py-1 px-3" data-platform="facebook">
+                                        <i class="fab fa-facebook-f me-1"></i> Facebook
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary social-share-btn py-1 px-3" data-platform="line">
+                                        <i class="fab fa-line me-1"></i> Line
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary social-share-btn py-1 px-3" data-platform="email">
+                                        <i class="fas fa-envelope me-1"></i> Email
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- QR Code สำหรับเช็คอิน -->
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-qrcode me-2"></i> QR Code เช็คอิน
+                </h6>
+            </div>
+            <div class="card-body text-center">
+                <div id="qrcode-container" class="mb-3">
+                    <!-- QR Code จะถูกสร้างด้วย JavaScript -->
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={{ request.build_absolute_uri }}" alt="QR Code" class="img-fluid" style="max-width: 200px;">
+                </div>
+                <p class="text-muted">สแกน QR Code นี้เพื่อเช็คอินเข้าร่วมสัมมนา</p>
+                <a href="https://api.qrserver.com/v1/create-qr-code/?size=400x400&data={{ request.build_absolute_uri }}&download=1" class="btn btn-outline-primary" download="qrcode-{{ participant.id }}.png">
+                    <i class="fas fa-download me-2"></i> ดาวน์โหลด QR Code
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-bell me-2"></i> ไทม์ไลน์สัมมนา
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-marker bg-success"></div>
+                        <div class="timeline-content">
+                            <h5 class="mb-1">ลงทะเบียนสำเร็จ</h5>
+                            <p class="text-muted mb-0">{{ participant.registered_at|date:"d M Y, H:i" }}</p>
+                        </div>
+                    </div>
+                    {% if participant.attendance_confirmed %}
+                    <div class="timeline-item">
+                        <div class="timeline-marker bg-primary"></div>
+                        <div class="timeline-content">
+                            <h5 class="mb-1">ยืนยันการเข้าร่วม</h5>
+                            <p class="text-muted mb-0">{{ participant.attendance_confirmed_at|date:"d M Y, H:i"|default:"รอการยืนยัน" }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                    <div class="timeline-item">
+                        <div class="timeline-marker {% if participant.seminar.start_date < now %}bg-primary{% else %}bg-secondary{% endif %}"></div>
+                        <div class="timeline-content">
+                            <h5 class="mb-1">สัมมนาเริ่มต้น</h5>
+                            <p class="text-muted mb-0">{{ participant.seminar.start_date|date:"d M Y, H:i" }}</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-marker bg-secondary"></div>
+                        <div class="timeline-content">
+                            <h5 class="mb-1">สัมมนาสิ้นสุด</h5>
+                            <p class="text-muted mb-0">{{ participant.seminar.end_date|date:"d M Y, H:i" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Timeline Styles */
+    .timeline {
+        position: relative;
+        padding-left: 3rem;
+    }
+    
+    .timeline::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 15px;
+        height: 100%;
+        width: 2px;
+        background: var(--timeline-bg);
+    }
+    
+    .timeline-item {
+        position: relative;
+        padding-bottom: 1.5rem;
+    }
+    
+    .timeline-marker {
+        position: absolute;
+        left: -3rem;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        border: 2px solid var(--card-bg);
+        box-shadow: 0 0 0 4px rgba(0,0,0,0.1);
+    }
+    
+    .timeline-content {
+        padding: 1rem;
+        background: var(--card-bg);
+        border-radius: 0.5rem;
+        box-shadow: 0 0.1rem 0.5rem rgba(0,0,0,0.05);
+    }
+    
+    .bg-success {
+        background-color: var(--success-color) !important;
+    }
+    
+    .bg-primary {
+        background-color: var(--primary-color) !important;
+    }
+    
+    .bg-secondary {
+        background-color: var(--secondary-color) !important;
+    }
+    
+    @media print {
+        body * {
+            visibility: hidden;
+        }
+        .participant-card, .participant-card * {
+            visibility: visible;
+        }
+        .participant-card {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            border: none !important;
+            box-shadow: none !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // คลิกที่ปุ่มแชร์ในหน้า participant detail
+        const shareButtons = document.querySelectorAll('.social-share-btn');
+        shareButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const platform = this.dataset.platform;
+                
+                // อัปเดต meta tag สำหรับการแชร์บัตรผู้เข้าร่วม
+                document.querySelector('meta[property="og:title"]').setAttribute('content', 
+                    'บัตรผู้เข้าร่วม: {{ participant.full_name }}');
+                document.querySelector('meta[property="og:description"]').setAttribute('content', 
+                    'เข้าร่วมสัมมนา {{ participant.seminar.name }} ในวันที่ {{ participant.seminar.start_date|date:"d M Y" }}');
+                
+                shareContent(platform);
+            });
+        });
+    });
+</script>
+{% endblock %}

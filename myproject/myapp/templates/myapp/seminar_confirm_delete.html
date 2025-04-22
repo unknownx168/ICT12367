@@ -1,0 +1,54 @@
+{% extends 'myapp/base.html' %}
+{% load static %}
+
+{% block title %}ยืนยันการลบสัมมนา - ระบบลงทะเบียนสัมมนา{% endblock %}
+
+{% block page_title %}ยืนยันการลบสัมมนา{% endblock %}
+{% block page_subtitle %}โปรดยืนยันการลบข้อมูลสัมมนาต่อไปนี้{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i> ยืนยันการลบสัมมนา
+                </h6>
+            </div>
+            <div class="card-body text-center">
+                <div class="alert alert-danger mb-4">
+                    <p class="mb-0">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        คุณกำลังจะลบข้อมูลสัมมนาต่อไปนี้:
+                    </p>
+                </div>
+                
+                <h4 class="mb-3">{{ object.name }}</h4>
+                <p>วันที่: {{ object.start_date|date:"d M Y H:i" }} ถึง {{ object.end_date|date:"d M Y H:i" }}</p>
+                <p>สถานที่: {{ object.location }}</p>
+                <p>จำนวนผู้เข้าร่วม: {{ object.get_participant_count }} คน</p>
+                
+                {% if object.get_participant_count > 0 %}
+                    <div class="alert alert-warning mt-3">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        <strong>คำเตือน:</strong> การลบข้อมูลสัมมนานี้จะทำให้ข้อมูลผู้เข้าร่วมทั้งหมด {{ object.get_participant_count }} คนถูกลบไปด้วย
+                    </div>
+                {% endif %}
+                
+                <form method="post" class="mt-4">
+                    {% csrf_token %}
+                    
+                    <div class="d-flex justify-content-center gap-2">
+                        <a href="{% url 'seminar_detail' object.id %}" class="btn btn-secondary">
+                            <i class="fas fa-times-circle me-1"></i> ยกเลิก
+                        </a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash me-1"></i> ยืนยันการลบ
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,337 @@
+{% extends 'myapp/base.html' %}
+{% load static %}
+
+{% block title %}รายชื่อผู้เข้าร่วม - ระบบลงทะเบียนสัมมนา{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="breadcrumb-item active" aria-current="page">รายชื่อผู้เข้าร่วม</li>
+{% endblock %}
+
+{% block page_title %}รายชื่อผู้เข้าร่วมสัมมนา{% endblock %}
+{% block page_subtitle %}ค้นหาและจัดการรายชื่อผู้เข้าร่วมสัมมนาทั้งหมด{% endblock %}
+
+{% block content %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary">
+            <i class="fas fa-users me-2"></i> รายชื่อผู้เข้าร่วมทั้งหมด
+        </h6>
+        <a href="{% url 'participant_create' %}" class="btn btn-primary">
+            <i class="fas fa-user-plus me-2"></i> เพิ่มผู้เข้าร่วม
+        </a>
+    </div>
+    <div class="card-body">
+        <!-- Search Form -->
+        <form method="get" class="mb-5">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                        {{ search_form.search_term }}
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
+                        {{ search_form.seminar }}
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100 py-2">
+                        <i class="fas fa-filter me-2"></i> กรอง
+                    </button>
+                </div>
+            </div>
+        </form>
+        
+        <!-- Results info -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <p class="text-muted mb-0">
+                <i class="fas fa-info-circle me-2"></i> แสดงผลลัพธ์ {{ participant_count }} รายการ
+            </p>
+            
+            <!-- Export/Print buttons -->
+            <div class="btn-group">
+                <button type="button" class="btn btn-outline-secondary me-2" onclick="window.print()">
+                    <i class="fas fa-print me-2"></i> พิมพ์
+                </button>
+                <button type="button" class="btn btn-outline-success me-2">
+                    <i class="fas fa-file-excel me-2"></i> Excel
+                </button>
+                <button type="button" class="btn btn-outline-danger">
+                    <i class="fas fa-file-pdf me-2"></i> PDF
+                </button>
+            </div>
+        </div>
+        
+        <!-- Participants Table -->
+        {% if participants %}
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th scope="col" class="py-3">#</th>
+                            <th scope="col" class="py-3">ชื่อ-นามสกุล</th>
+                            <th scope="col" class="py-3">อีเมล</th>
+                            <th scope="col" class="py-3">เบอร์โทรศัพท์</th>
+                            <th scope="col" class="py-3">หัวข้อสัมมนา</th>
+                            <th scope="col" class="py-3">สถานะ</th>
+                            <th scope="col" class="py-3 text-center">การจัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for participant in participants %}
+                            <tr>
+                                <td class="py-3">{{ forloop.counter }}</td>
+                                <td class="py-3">
+                                    <a href="{% url 'participant_detail' participant.id %}" class="fw-bold text-decoration-none">
+                                        {{ participant.full_name }}
+                                    </a>
+                                </td>
+                                <td class="py-3">{{ participant.email }}</td>
+                                <td class="py-3">{{ participant.phone }}</td>
+                                <td class="py-3">
+                                    <a href="{% url 'seminar_detail' participant.seminar.id %}" class="badge bg-primary text-decoration-none py-2 px-3">
+                                        {{ participant.seminar.name }}
+                                    </a>
+                                </td>
+                                <td class="py-3">
+                                    {% if participant.attendance_confirmed %}
+                                        <span class="badge bg-success py-2 px-3">ยืนยันแล้ว</span>
+                                    {% else %}
+                                        <span class="badge bg-warning py-2 px-3">รอยืนยัน</span>
+                                    {% endif %}
+                                </td>
+                                <td class="py-3 text-center">
+                                    <div class="btn-group">
+                                        <a href="{% url 'participant_detail' participant.id %}" class="btn btn-sm btn-info me-1" data-bs-toggle="tooltip" title="ดูรายละเอียด">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{% url 'participant_update' participant.id %}" class="btn btn-sm btn-warning me-1" data-bs-toggle="tooltip" title="แก้ไข">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{% url 'participant_delete' participant.id %}" class="btn btn-sm btn-danger" data-bs-toggle="tooltip" title="ลบ">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            {% if is_paginated %}
+                <nav aria-label="Page navigation" class="mt-5">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1{% if request.GET.search_term %}&search_term={{ request.GET.search_term }}{% endif %}{% if request.GET.seminar %}&seminar={{ request.GET.seminar }}{% endif %}" aria-label="First">
+                                    <span aria-hidden="true">&laquo;&laquo;</span>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search_term %}&search_term={{ request.GET.search_term }}{% endif %}{% if request.GET.seminar %}&seminar={{ request.GET.seminar }}{% endif %}" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" tabindex="-1" aria-disabled="true">&laquo;&laquo;</a>
+                            </li>
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" tabindex="-1" aria-disabled="true">&laquo;</a>
+                            </li>
+                        {% endif %}
+                        
+                        {% for i in page_obj.paginator.page_range %}
+                            {% if page_obj.number == i %}
+                                <li class="page-item active"><a class="page-link" href="#">{{ i }}</a></li>
+                            {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ i }}{% if request.GET.search_term %}&search_term={{ request.GET.search_term }}{% endif %}{% if request.GET.seminar %}&seminar={{ request.GET.seminar }}{% endif %}">{{ i }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search_term %}&search_term={{ request.GET.search_term }}{% endif %}{% if request.GET.seminar %}&seminar={{ request.GET.seminar }}{% endif %}" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search_term %}&search_term={{ request.GET.search_term }}{% endif %}{% if request.GET.seminar %}&seminar={{ request.GET.seminar }}{% endif %}" aria-label="Last">
+                                    <span aria-hidden="true">&raquo;&raquo;</span>
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" tabindex="-1" aria-disabled="true">&raquo;</a>
+                            </li>
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" tabindex="-1" aria-disabled="true">&raquo;&raquo;</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+            
+        {% else %}
+            <div class="alert alert-info py-3">
+                <i class="fas fa-info-circle me-2"></i> ไม่พบข้อมูลผู้เข้าร่วม
+                {% if request.GET.search_term or request.GET.seminar %}
+                    <a href="{% url 'participant_list' %}" class="alert-link">ล้างการค้นหา</a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Dashboard Cards -->
+<div class="row">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card dashboard-card primary">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <div class="card-title text-uppercase">ผู้เข้าร่วมทั้งหมด</div>
+                        <div class="card-value">{{ total_participants }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-users fa-2x text-primary opacity-25"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card dashboard-card success">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <div class="card-title text-uppercase">ยืนยันแล้ว</div>
+                        <div class="card-value">{{ confirmed_participants }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-check-circle fa-2x text-success opacity-25"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card dashboard-card warning" style="border-left-color: var(--warning-color);">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <div class="card-title text-uppercase">รอยืนยัน</div>
+                        <div class="card-value">{{ pending_participants }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-clock fa-2x text-warning opacity-25"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card dashboard-card info" style="border-left-color: var(--info-color);">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <div class="card-title text-uppercase">สัมมนาทั้งหมด</div>
+                        <div class="card-value">{{ total_seminars }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-calendar-alt fa-2x text-info opacity-25"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Enable tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+        
+        // Animation for dashboard cards
+        const dashboardCards = document.querySelectorAll('.dashboard-card');
+        dashboardCards.forEach((card, index) => {
+            setTimeout(() => {
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, 100 * index);
+        });
+    });
+</script>
+
+<style>
+    /* Dashboard Cards Animation */
+    .dashboard-card {
+        opacity: 0;
+        transform: translateY(20px);
+        transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    
+    /* Print styles */
+    @media print {
+        .social-share-container,
+        .navbar,
+        .breadcrumb,
+        .btn-group,
+        .pagination,
+        .footer,
+        form {
+            display: none !important;
+        }
+        
+        .card {
+            box-shadow: none !important;
+            border: 1px solid #ddd !important;
+        }
+        
+        .card-header {
+            background-color: #f8f9fc !important;
+            color: #000 !important;
+        }
+        
+        .table th {
+            background-color: #f8f9fc !important;
+            color: #000 !important;
+        }
+        
+        .badge {
+            border: 1px solid #ddd;
+        }
+        
+        .badge.bg-primary {
+            background-color: #fff !important;
+            color: #000 !important;
+        }
+        
+        .badge.bg-success {
+            background-color: #fff !important;
+            color: #000 !important;
+            border-color: #1cc88a;
+        }
+        
+        .badge.bg-warning {
+            background-color: #fff !important;
+            color: #000 !important;
+            border-color: #f6c23e;
+        }
+    }
+</style>
+{% endblock %}
