@@ -1,6 +1,6 @@
 # ระบบลงทะเบียนสัมมนาออนไลน์ (Seminar Registration System)
 
-![Seminar Registration System](https://via.placeholder.com/1200x400/4e73df/ffffff?text=ระบบลงทะเบียนสัมมนาออนไลน์)
+![Seminar Registration System](images/Screenshot_26-4-2025_154649_127.0.0.1.jpeg)
 
 ระบบจัดการการลงทะเบียนสัมมนาที่พัฒนาด้วย Django Framework สำหรับการจัดการข้อมูลผู้เข้าร่วมงานสัมมนา การติดตามสถานะการลงทะเบียน และการจัดการหัวข้อสัมมนาต่างๆ อย่างมีประสิทธิภาพ
 
